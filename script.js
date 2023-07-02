@@ -1,74 +1,74 @@
-//your JS code here. If required.
-const player1Input = document.getElementById("player-1");
-      const player2Input = document.getElementById("player-2");
-      const submitButton = document.getElementById("submit");
-      const messageDiv = document.querySelector(".message");
-      const cells = document.querySelectorAll(".cell");
+let currentPlayer = 1;
+      let player1Name = "";
+      let player2Name = "";
+      let board = ["", "", "", "", "", "", "", "", ""];
 
-      let currentPlayer = "X";
+      function startGame() {
+        player1Name = document.getElementById("player-1").value;
+        player2Name = document.getElementById("player-2").value;
 
-      // Event listener for submit button
-      submitButton.addEventListener("click", () => {
-        const player1 = player1Input.value;
-        const player2 = player2Input.value;
-        if (player1 && player2) {
-          player1Input.disabled = true;
-          player2Input.disabled = true;
-          submitButton.disabled = true;
-          messageDiv.textContent = `${player1}, you're up!`;
-          cells.forEach((cell) => {
-            cell.addEventListener("click", handleCellClick);
-          });
+        if (player1Name && player2Name) {
+          document.getElementById("player-info").style.display = "none";
+          document.getElementById("game-board").style.display = "block";
+          document.getElementById("turn-message").textContent =
+            player1Name + ", your turn";
         }
-      });
+      }
 
-      // Event listener for cell clicks
-      function handleCellClick(event) {
-        const cell = event.target;
-        if (!cell.textContent) {
-          cell.textContent = currentPlayer;
-          if (checkWin()) {
-            messageDiv.textContent = `${getCurrentPlayerName()}, congratulations you won!`;
-            cells.forEach((cell) => {
-              cell.removeEventListener("click", handleCellClick);
-            });
+      function playMove(cell) {
+        if (board[cell - 1] === "") {
+          const cellElement = document.getElementById(cell);
+          cellElement.textContent = currentPlayer === 1 ? "X" : "O";
+          board[cell - 1] = currentPlayer === 1 ? "X" : "O";
+          cellElement.style.pointerEvents = "none";
+
+          const result = checkGameResult();
+          if (result) {
+            document.getElementById("result-message").textContent =
+              result === "X"
+                ? player1Name + ", congratulations you won!"
+                : player2Name + ", congratulations you won!";
+            disableCellClick();
           } else {
-            currentPlayer = currentPlayer === "X" ? "O" : "X";
-            messageDiv.textContent = `${getCurrentPlayerName()}, you're up!`;
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            document.getElementById("turn-message").textContent =
+              currentPlayer === 1 ? player1Name + ", your turn" : player2Name + ", your turn";
           }
         }
       }
 
-      // Check for a winning combination
-      function checkWin() {
-        const winningCombinations = [
-          [1, 2, 3],
-          [4, 5, 6],
-          [7, 8, 9],
+      function checkGameResult() {
+        const winningConditions = [
+          [0, 1, 2],
+          [3, 4, 5],
+          [6, 7, 8],
+          [0, 3, 6],
           [1, 4, 7],
           [2, 5, 8],
-          [3, 6, 9],
-          [1, 5, 9],
-          [3, 5, 7],
+          [0, 4, 8],
+          [2, 4, 6]
         ];
 
-        for (const combination of winningCombinations) {
-          const [a, b, c] = combination;
-          const cellA = document.getElementById(a);
-          const cellB = document.getElementById(b);
-          const cellC = document.getElementById(c);
+        for (let condition of winningConditions) {
           if (
-            cellA.textContent &&
-            cellA.textContent === cellB.textContent &&
-            cellA.textContent === cellC.textContent
+            board[condition[0]] &&
+            board[condition[0]] === board[condition[1]] &&
+            board[condition[0]] === board[condition[2]]
           ) {
-            return true;
+            return board[condition[0]];
           }
         }
-        return false;
+
+        if (board.every((cell) => cell !== "")) {
+          return "draw";
+        }
+
+        return null;
       }
 
-      // Get the current player's name
-      function getCurrentPlayerName() {
-        return currentPlayer === "X" ? player1Input.value : player2Input.value;
+      function disableCellClick() {
+        const cells = document.getElementsByClassName("cell");
+        for (let i = 0; i < cells.length; i++) {
+          cells[i].style.pointerEvents = "none";
+        }
       }
